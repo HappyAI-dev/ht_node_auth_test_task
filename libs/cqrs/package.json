@@ -1,0 +1,11 @@
+{
+  "name": "@auth/cqrs",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/cqrs": "^10.0.0",
+    "rxjs": "^7.8.1"
+  }
+}

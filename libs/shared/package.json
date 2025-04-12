@@ -1,0 +1,9 @@
+{
+  "name": "@auth/shared",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0"
+  }
+}
