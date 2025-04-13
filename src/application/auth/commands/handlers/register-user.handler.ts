@@ -3,67 +3,46 @@ import { ConflictException } from '@nestjs/common';
 import { RegisterUserCommand } from '../impl/register-user.command';
 import { UserStore } from '@infrastructure/stores/user.store';
 import { User } from '@domain/models/user.model';
-import { AuthResponse } from '../../dto/auth.dto';
-import { JwtService } from '@nestjs/jwt';
+import { AuthResponse } from '@libs/shared/dto/auth';
+import { AuthService } from '../../services/auth.service';
 import { UserCreatedEvent } from '@application/auth/events/impl/user-created.event';
 import { WelcomeEmailRequiredEvent } from '@application/auth/events/impl/welcome-email-required.event';
-import { WorkspaceCreationRequiredEvent } from '@application/auth/events/impl/workspace-creation-required.event';
 import { LoggerService } from '@libs/logger/src/logger.service';
 
 @CommandHandler(RegisterUserCommand)
 export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand> {
   constructor(
     private readonly userStore: UserStore,
-    private readonly jwtService: JwtService,
+    private readonly authService: AuthService,
     private readonly eventBus: EventBus,
     private readonly logger: LoggerService,
   ) {}
 
   async execute(command: RegisterUserCommand): Promise<AuthResponse> {
-    this.logger.debug('Handling register user command', { email: command.email });
-
-    // Check if user already exists
-    const exists = await this.userStore.exists(command.email);
-    if (exists) {
-      this.logger.warn('User already exists', { email: command.email });
-      throw new ConflictException('User already exists');
-    }
+    this.logger.debug('Handling RegisterUserCommand', { email: command.email });
 
     try {
-      // Create user
-      const user = await User.create(
-        command.email,
-        command.password,
-        command.firstName,
-        command.lastName,
-      );
+      const { user: userDto, ...response } = await this.authService.register({
+        email: command.email,
+        password: command.password,
+        firstName: command.firstName,
+        lastName: command.lastName,
+      });
 
-      // Save user
-      const savedUser = await this.userStore.save(user);
-      this.logger.info('User created successfully', { userId: savedUser.id });
-
-      // Create JWT token
-      const payload = { sub: savedUser.id, email: savedUser.email };
-      const accessToken = this.jwtService.sign(payload);
+      // Get full user model for UserCreatedEvent
+      const user = await this.userStore.findById(userDto.id);
+      if (!user) {
+        throw new Error('User not found after registration');
+      }
 
       // Publish events
-      this.eventBus.publish(new UserCreatedEvent(savedUser));
-      this.eventBus.publish(new WelcomeEmailRequiredEvent(savedUser));
-      this.eventBus.publish(new WorkspaceCreationRequiredEvent(savedUser));
+      this.eventBus.publish(new UserCreatedEvent(user));
+      this.eventBus.publish(new WelcomeEmailRequiredEvent(user));
 
-      this.logger.debug('User registration completed', { userId: savedUser.id });
-
-      return {
-        accessToken,
-        user: {
-          id: savedUser.id,
-          email: savedUser.email,
-          firstName: savedUser.firstName,
-          lastName: savedUser.lastName,
-        },
-      };
+      this.logger.debug('User registration completed', { userId: user.id });
+      return { ...response, user: userDto };
     } catch (error) {
-      this.logger.error('Failed to register user', error, { email: command.email });
+      this.logger.error('Failed to register user', error);
       throw error;
     }
   }

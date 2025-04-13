@@ -1,4 +1,4 @@
-import { IEvent } from '@libs/shared/src/lib/cqrs/interfaces';
+import { IEvent } from '@nestjs/cqrs';
 import { User } from '@domain/models/user.model';
 
 export class UserRegisteredEvent implements IEvent {

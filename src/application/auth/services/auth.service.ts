@@ -1,66 +1,29 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { User } from '@domain/models/user.model';
-import { LoginDto, RegisterDto, AuthResponse } from '../dto/auth.dto';
+import { LoginDto, RegisterDto, AuthResponse } from '@libs/shared/dto/auth';
+import { UserStore } from '@infrastructure/stores/user.store';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly userStore: UserStore,
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<AuthResponse> {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: registerDto.email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    const user = this.userRepository.create({
-      ...registerDto,
-      password: hashedPassword,
-    });
-
-    await this.userRepository.save(user);
-
-    const token = this.generateToken(user);
-    return this.buildResponse(user, token);
-  }
-
-  async login(loginDto: LoginDto): Promise<AuthResponse> {
-    const user = await this.userRepository.findOne({
-      where: { email: loginDto.email },
-    });
-
-    if (!user) {
+  async validateUser(email: string, password: string): Promise<User> {
+    const user = await this.userStore.findByEmail(email);
+    if (!user || !(await user.validatePassword(password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const token = this.generateToken(user);
-    return this.buildResponse(user, token);
+    return user;
   }
 
-  private generateToken(user: User): string {
+  generateAuthResponse(user: User): AuthResponse {
     const payload = { sub: user.id, email: user.email };
-    return this.jwtService.sign(payload);
-  }
-
-  private buildResponse(user: User, token: string): AuthResponse {
+    
     return {
-      accessToken: token,
+      accessToken: this.jwtService.sign(payload),
       user: {
         id: user.id,
         email: user.email,
@@ -68,5 +31,27 @@ export class AuthService {
         lastName: user.lastName,
       },
     };
+  }
+
+  async login(loginDto: LoginDto): Promise<AuthResponse> {
+    const user = await this.validateUser(loginDto.email, loginDto.password);
+    return this.generateAuthResponse(user);
+  }
+
+  async register(registerDto: RegisterDto): Promise<AuthResponse> {
+    const exists = await this.userStore.exists(registerDto.email);
+    if (exists) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const user = await User.create(
+      registerDto.email,
+      registerDto.password,
+      registerDto.firstName,
+      registerDto.lastName
+    );
+
+    const savedUser = await this.userStore.save(user);
+    return this.generateAuthResponse(savedUser);
   }
 }

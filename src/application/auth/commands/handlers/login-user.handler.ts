@@ -1,53 +1,43 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UnauthorizedException } from '@nestjs/common';
+import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { LoginUserCommand } from '../impl/login-user.command';
 import { UserStore } from '@infrastructure/stores/user.store';
-import { AuthResponse } from '../../dto/auth.dto';
-import { JwtService } from '@nestjs/jwt';
+import { AuthResponse } from '@libs/shared/dto/auth';
+import { AuthService } from '../../services/auth.service';
 import { LoggerService } from '@libs/logger/src/logger.service';
+import { UserLoggedInEvent } from '@application/auth/events/impl/user-logged-in.event';
 
 @CommandHandler(LoginUserCommand)
 export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
   constructor(
     private readonly userStore: UserStore,
-    private readonly jwtService: JwtService,
+    private readonly authService: AuthService,
+    private readonly eventBus: EventBus,
     private readonly logger: LoggerService,
   ) {}
 
   async execute(command: LoginUserCommand): Promise<AuthResponse> {
-    this.logger.debug('Handling login user command', { email: command.email });
+    this.logger.debug('Handling LoginUserCommand', { email: command.email });
 
-    // Find user
-    const user = await this.userStore.findByEmail(command.email);
-    if (!user) {
-      this.logger.warn('User not found', { email: command.email });
-      throw new UnauthorizedException('Invalid credentials');
+    try {
+      const response = await this.authService.login({
+        email: command.email,
+        password: command.password,
+      });
+
+      // Get full user model for UserLoggedInEvent
+      const user = await this.userStore.findById(response.user.id);
+      if (!user) {
+        throw new Error('User not found after login');
+      }
+
+      // Publish event
+      this.eventBus.publish(new UserLoggedInEvent(user));
+
+      this.logger.debug('User logged in successfully', { userId: response.user.id });
+      return response;
+    } catch (error) {
+      this.logger.error('Failed to login user', error);
+      throw error;
     }
-
-    // Validate password
-    if (!(await user.validatePassword(command.password))) {
-      this.logger.warn('Invalid password', { email: command.email });
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    // Update last login
-    user.updateLastLogin();
-    await this.userStore.save(user);
-
-    // Create JWT token
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload);
-
-    this.logger.debug('User login completed', { userId: user.id });
-
-    return {
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
-    };
   }
 }

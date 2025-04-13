@@ -7,7 +7,7 @@ import { GetUserProfileQuery } from '@application/auth/queries/impl/get-user-pro
 import { JwtAuthGuard } from '@infrastructure/auth/jwt-auth.guard';
 import { CurrentUser } from '@application/auth/decorators/current-user.decorator';
 import { User } from '@domain/models/user.model';
-import { RegisterDto, LoginDto, AuthResponse, UserDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, AuthResponse, UserDto } from '@libs/shared/dto/auth';
 import { LoggerService } from '@libs/logger/src/logger.service';
 
 @ApiTags('auth')

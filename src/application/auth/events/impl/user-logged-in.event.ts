@@ -1,12 +1,12 @@
-import { IEvent } from '../../../../../libs/shared/src/lib/cqrs/interfaces';
+import { IEvent } from '@nestjs/cqrs';
+import { User } from '@domain/models/user.model';
 
 export class UserLoggedInEvent implements IEvent {
   readonly type = 'UserLoggedInEvent';
   readonly timestamp: Date;
 
   constructor(
-    public readonly userId: string,
-    public readonly email: string,
+    public readonly user: User,
   ) {
     this.timestamp = new Date();
   }

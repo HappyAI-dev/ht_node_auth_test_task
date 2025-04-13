@@ -1,4 +1,4 @@
-import { IEventHandler } from '../../../../../libs/shared/src/lib/cqrs/interfaces';
+import { IEventHandler } from '@nestjs/cqrs';
 import { Injectable, Logger } from '@nestjs/common';
 import { WelcomeEmailRequiredEvent } from '../impl/welcome-email-required.event';
 

@@ -10,6 +10,7 @@ import { JwtStrategy } from '@infrastructure/auth/jwt.strategy';
 import { UserStore } from '@infrastructure/stores/user.store';
 import { WorkspaceStore } from '@infrastructure/stores/workspace.store';
 import { LoggerModule } from '@libs/logger/src/logger.module';
+import { AuthService } from '@application/auth/services/auth.service';
 
 // Command Handlers
 import { RegisterUserHandler } from '@application/auth/commands/handlers/register-user.handler';
@@ -20,14 +21,12 @@ import { GetUserProfileHandler } from '@application/auth/queries/handlers/get-us
 
 // Event Handlers
 import { EmailNotificationHandler } from '@application/auth/events/handlers/email-notification.handler';
-import { WorkspaceCreationHandler } from '@application/auth/events/handlers/workspace-creation.handler';
 import { UserCreatedAuditHandler, UserLoggedInAuditHandler } from '@application/auth/events/handlers/audit-log.handler';
 
 const CommandHandlers = [RegisterUserHandler, LoginUserHandler];
 const QueryHandlers = [GetUserProfileHandler];
 const EventHandlers = [
   EmailNotificationHandler,
-  WorkspaceCreationHandler,
   UserCreatedAuditHandler,
   UserLoggedInAuditHandler,
 ];
@@ -35,21 +34,24 @@ const EventHandlers = [
 @Module({
   imports: [
     CqrsModule,
-    LoggerModule,
     TypeOrmModule.forFeature([User, Workspace, WorkspaceMember]),
     JwtModule.registerAsync({
-      inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        secret: config.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: config.get<string>('JWT_EXPIRES_IN'),
+        },
       }),
+      inject: [ConfigService],
     }),
+    LoggerModule,
   ],
   controllers: [AuthController],
   providers: [
+    AuthService,
+    JwtStrategy,
     UserStore,
     WorkspaceStore,
-    JwtStrategy,
     ...CommandHandlers,
     ...QueryHandlers,
     ...EventHandlers,

@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
-import { WorkspaceRole } from '../../../../libs/shared/src/lib/interfaces/workspace.interface';
+import { WorkspaceMemberRole } from '@domain//models/workspace.model';
 
 export class CreateWorkspaceTables1681317600001 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -66,8 +66,8 @@ export class CreateWorkspaceTables1681317600001 implements MigrationInterface {
           {
             name: 'role',
             type: 'enum',
-            enum: Object.values(WorkspaceRole),
-            default: `'${WorkspaceRole.MEMBER}'`,
+            enum: Object.values(WorkspaceMemberRole),
+            default: `'${WorkspaceMemberRole.MEMBER}'`,
           },
           {
             name: 'createdAt',
