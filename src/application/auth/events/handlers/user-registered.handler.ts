@@ -1,6 +1,6 @@
 import { IEventHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
-import { UserRegisteredEvent } from '../impl/user-registered.event';
+import { UserRegisteredEvent } from '@application/auth/events/impl/user-registered.event';
 
 @Injectable()
 export class UserRegisteredHandler implements IEventHandler<UserRegisteredEvent> {

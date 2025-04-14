@@ -1,9 +1,9 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { Transport } from '@nestjs/microservices';
-import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
+import { Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,13 +12,13 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors();
 
-  // Глобальная валидация
+  // Global validation
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     transform: true,
   }));
 
-  // Swagger конфигурация
+  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('HypeTrain API')
     .setDescription('Authentication and Authorization API')
@@ -31,7 +31,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // Настройка микросервиса
+  // Microservice configuration
   app.connectMicroservice({
     transport: Transport.TCP,
     options: {
@@ -40,7 +40,7 @@ async function bootstrap() {
     },
   });
 
-  // Запуск микросервиса и HTTP сервера
+  // Start microservice and HTTP server
   await app.startAllMicroservices();
   const port = configService.get('PORT') || 3000;
   await app.listen(port);

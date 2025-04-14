@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './user.model';
-import { BaseModel, BaseProps } from './base.model';
+import { User } from '@domain/models/user.model';
+import { BaseModel, BaseProps } from '@domain/models/base.model';
 
 export enum WorkspaceMemberRole {
   OWNER = 'owner',

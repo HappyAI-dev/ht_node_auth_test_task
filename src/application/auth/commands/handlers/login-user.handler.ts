@@ -1,8 +1,8 @@
-import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
-import { LoginUserCommand } from '../impl/login-user.command';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import { LoginUserCommand } from '@application/auth/commands/impl/login-user.command';
 import { UserStore } from '@infrastructure/stores/user.store';
 import { AuthResponse } from '@libs/shared/dto/auth';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '@application/auth/services/auth.service';
 import { LoggerService } from '@libs/logger/src/logger.service';
 import { UserLoggedInEvent } from '@application/auth/events/impl/user-logged-in.event';
 
@@ -36,7 +36,7 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
       this.logger.debug('User logged in successfully', { userId: response.user.id });
       return response;
     } catch (error) {
-      this.logger.error('Failed to login user', error);
+      this.logger.error('Failed to login user', error, { email: command.email });
       throw error;
     }
   }
