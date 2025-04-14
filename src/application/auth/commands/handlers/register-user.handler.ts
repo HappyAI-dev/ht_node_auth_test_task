@@ -1,12 +1,13 @@
-import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { ConflictException } from '@nestjs/common';
-import { RegisterUserCommand } from '../impl/register-user.command';
-import { UserStore } from '@infrastructure/stores/user.store';
-import { User } from '@domain/models/user.model';
-import { AuthResponse } from '@libs/shared/dto/auth';
-import { AuthService } from '../../services/auth.service';
+
+import { RegisterUserCommand } from '@application/auth/commands/impl/register-user.command';
 import { UserCreatedEvent } from '@application/auth/events/impl/user-created.event';
 import { WelcomeEmailRequiredEvent } from '@application/auth/events/impl/welcome-email-required.event';
+import { AuthService } from '@application/auth/services/auth.service';
+import { User } from '@domain/models/user.model';
+import { UserStore } from '@infrastructure/stores/user.store';
+import { AuthResponse } from '@libs/shared/dto/auth';
 import { LoggerService } from '@libs/logger/src/logger.service';
 
 @CommandHandler(RegisterUserCommand)
@@ -35,6 +36,10 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
         throw new Error('User not found after registration');
       }
 
+      // Update last login time
+      user.updateLastLogin();
+      await this.userStore.save(user);
+
       // Publish events
       this.eventBus.publish(new UserCreatedEvent(user));
       this.eventBus.publish(new WelcomeEmailRequiredEvent(user));
@@ -42,7 +47,7 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
       this.logger.debug('User registration completed', { userId: user.id });
       return { ...response, user: userDto };
     } catch (error) {
-      this.logger.error('Failed to register user', error);
+      this.logger.error('Failed to register user', error, { email: command.email });
       throw error;
     }
   }

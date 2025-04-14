@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { NotFoundException } from '@nestjs/common';
-import { GetUserProfileQuery } from '../impl/get-user-profile.query';
+import { GetUserProfileQuery } from '@application/auth/queries/impl/get-user-profile.query';
 import { UserStore } from '@infrastructure/stores/user.store';
 import { User } from '@domain/models/user.model';
 import { LoggerService } from '@libs/logger/src/logger.service';

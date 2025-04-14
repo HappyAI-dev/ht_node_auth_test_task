@@ -1,8 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
-import { WorkspaceMember } from './workspace.model';
-import { BaseModel, BaseProps } from './base.model';
+import { WorkspaceMember } from '@domain/models/workspace.model';
+import { BaseModel, BaseProps } from '@domain/models/base.model';
 
 export interface UserProps extends BaseProps {
   id?: string;

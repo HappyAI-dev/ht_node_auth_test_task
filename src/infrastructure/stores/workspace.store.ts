@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Workspace, WorkspaceMember } from '../../domain/models/workspace.model';
+import { Workspace, WorkspaceMember } from '@domain/models/workspace.model';
 
 @Injectable()
 export class WorkspaceStore {
