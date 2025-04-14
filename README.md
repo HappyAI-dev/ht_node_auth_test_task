@@ -1,3 +1,13 @@
+# Это репозиторий тестового задания на позицию Middle Backend Dev в HypeTrain
+- Ниже документация по структуре репозитория
+- Задание находится в TASK.md
+- Подробные требования к кандидату находятся в REQUIREMENTS.md
+
+# !Процесс выполнения и сдачи задания!
+1. Сделать fork репозитория
+2. Выполнить задание в уже созданной кодовой базе
+3. Написать в тг @dimatatatarin
+
 # Node Authentication Service
 
 This project is a Node.js authentication service built using NestJS framework with TypeScript, following Domain-Driven Design (DDD) and CQRS principles.
