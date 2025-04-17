@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsOptional,
+} from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({
@@ -35,6 +41,15 @@ export class RegisterDto {
   })
   @IsString()
   lastName?: string;
+
+  @ApiProperty({
+    description: 'Реферальный код пригласившего пользователя',
+    example: 'ABC123XY',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  referralCode?: string;
 }
 
 export class LoginDto {
@@ -81,6 +96,37 @@ export class UserDto {
     required: false,
   })
   lastName?: string;
+
+  @ApiProperty({
+    description: 'Реферальный код пользователя',
+    example: 'ABC123XY',
+    required: false,
+  })
+  referralCode?: string;
+
+  @ApiProperty({
+    description: 'Уровень в реферальной программе',
+    example: 1,
+  })
+  referralLevel: number;
+
+  @ApiProperty({
+    description: 'Количество приглашенных пользователей',
+    example: 0,
+  })
+  referralCount: number;
+
+  @ApiProperty({
+    description: 'Текущий стрик (последовательные дни с приглашениями)',
+    example: 0,
+  })
+  referralStreak: number;
+
+  @ApiProperty({
+    description: 'Количество кредитов пользователя',
+    example: 0,
+  })
+  credits: number;
 }
 
 export class AuthResponse {

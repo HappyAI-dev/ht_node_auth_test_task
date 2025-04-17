@@ -8,21 +8,26 @@ export abstract class BaseModel<T extends BaseProps> {
   protected props: T;
 
   constructor(props: T) {
-    const now = new Date();
     this.props = {
       ...props,
-      createdAt: props.createdAt || now,
-      updatedAt: props.updatedAt || now
-    } as T;
+      createdAt: props.createdAt || new Date(),
+      updatedAt: props.updatedAt || new Date(),
+    };
   }
 
-  abstract get id(): string;
+  get id(): string {
+    return this.props.id;
+  }
 
   get createdAt(): Date {
-    return this.props.createdAt!;
+    return this.props.createdAt;
   }
 
   get updatedAt(): Date {
-    return this.props.updatedAt!;
+    return this.props.updatedAt;
+  }
+
+  toJSON(): Partial<T> {
+    return { ...this.props };
   }
 }

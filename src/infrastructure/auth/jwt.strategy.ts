@@ -35,11 +35,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // If workspaceId is in the token, verify access and add workspace info
     if (payload.workspaceId) {
       const workspace = await this.workspaceStore.findById(payload.workspaceId);
-      if (!workspace || !workspace.hasAccess(user.id!)) {
+      if (!workspace || !workspace.hasAccess(user.id)) {
         throw new UnauthorizedException('No access to this workspace');
       }
       result.currentWorkspace = workspace.toJSON();
-      result.workspaceRole = workspace.getUserRole(user.id!);
+      result.workspaceRole = workspace.getUserRole(user.id);
     }
 
     return result;

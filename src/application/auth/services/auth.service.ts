@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@domain/models/user.model';
 import { LoginDto, RegisterDto, AuthResponse } from '@libs/shared/dto/auth';
@@ -21,7 +25,7 @@ export class AuthService {
 
   generateAuthResponse(user: User): AuthResponse {
     const payload = { sub: user.id, email: user.email };
-    
+
     return {
       accessToken: this.jwtService.sign(payload),
       user: {
@@ -29,13 +33,23 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        referralCode: user.referralCode,
+        referralLevel: user.referralLevel,
+        referralCount: user.referralCount,
+        referralStreak: user.referralStreak,
+        credits: user.credits,
       },
     };
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponse> {
     const user = await this.validateUser(loginDto.email, loginDto.password);
-    return this.generateAuthResponse(user);
+
+    // Обновляем время последнего входа
+    user.updateLastLogin();
+    const updatedUser = await this.userStore.save(user);
+
+    return this.generateAuthResponse(updatedUser);
   }
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
@@ -44,11 +58,12 @@ export class AuthService {
       throw new ConflictException('User with this email already exists');
     }
 
+    // Реферальный код будет обработан в RegisterUserHandler через ReferralService
     const user = await User.create(
       registerDto.email,
       registerDto.password,
       registerDto.firstName,
-      registerDto.lastName
+      registerDto.lastName,
     );
 
     const savedUser = await this.userStore.save(user);

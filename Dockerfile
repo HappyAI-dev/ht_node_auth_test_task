@@ -11,7 +11,7 @@ COPY package*.json ./
 COPY tsconfig.json nest-cli.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .

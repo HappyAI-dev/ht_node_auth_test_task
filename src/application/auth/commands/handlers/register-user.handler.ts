@@ -1,20 +1,22 @@
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { ConflictException } from '@nestjs/common';
 
 import { RegisterUserCommand } from '@application/auth/commands/impl/register-user.command';
 import { UserCreatedEvent } from '@application/auth/events/impl/user-created.event';
 import { WelcomeEmailRequiredEvent } from '@application/auth/events/impl/welcome-email-required.event';
 import { AuthService } from '@application/auth/services/auth.service';
-import { User } from '@domain/models/user.model';
+import { ReferralService } from '@application/auth/services/referral.service';
 import { UserStore } from '@infrastructure/stores/user.store';
 import { AuthResponse } from '@libs/shared/dto/auth';
 import { LoggerService } from '@libs/logger/src/logger.service';
 
 @CommandHandler(RegisterUserCommand)
-export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand> {
+export class RegisterUserHandler
+  implements ICommandHandler<RegisterUserCommand>
+{
   constructor(
     private readonly userStore: UserStore,
     private readonly authService: AuthService,
+    private readonly referralService: ReferralService,
     private readonly eventBus: EventBus,
     private readonly logger: LoggerService,
   ) {}
@@ -28,6 +30,7 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
         password: command.password,
         firstName: command.firstName,
         lastName: command.lastName,
+        referralCode: command.referralCode,
       });
 
       // Get full user model for UserCreatedEvent
@@ -40,14 +43,41 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
       user.updateLastLogin();
       await this.userStore.save(user);
 
+      // Обработка реферального кода, если есть
+      if (command.referralCode) {
+        await this.referralService.processReferralCode(
+          user,
+          command.referralCode,
+        );
+      }
+
       // Publish events
       this.eventBus.publish(new UserCreatedEvent(user));
       this.eventBus.publish(new WelcomeEmailRequiredEvent(user));
 
+      // Получаем обновленные данные пользователя после всех изменений
+      const updatedUser = await this.userStore.findById(user.id);
+      if (!updatedUser) {
+        throw new Error('User not found after referral processing');
+      }
+
       this.logger.debug('User registration completed', { userId: user.id });
-      return { ...response, user: userDto };
+
+      // Обновляем данные пользователя в ответе с учетом кредитов и реферальной информации
+      const updatedUserDto = {
+        ...userDto,
+        referralCode: updatedUser.referralCode,
+        referralLevel: updatedUser.referralLevel,
+        referralCount: updatedUser.referralCount,
+        referralStreak: updatedUser.referralStreak,
+        credits: updatedUser.credits,
+      };
+
+      return { ...response, user: updatedUserDto };
     } catch (error) {
-      this.logger.error('Failed to register user', error, { email: command.email });
+      this.logger.error('Failed to register user', error, {
+        email: command.email,
+      });
       throw error;
     }
   }

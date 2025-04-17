@@ -5,9 +5,7 @@ export class UserLoggedInEvent implements IEvent {
   readonly type = 'UserLoggedInEvent';
   readonly timestamp: Date;
 
-  constructor(
-    public readonly user: User,
-  ) {
+  constructor(public readonly user: User) {
     this.timestamp = new Date();
   }
 }

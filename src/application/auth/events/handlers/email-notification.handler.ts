@@ -4,13 +4,17 @@ import { WelcomeEmailRequiredEvent } from '@application/auth/events/impl/welcome
 import { LoggerService } from '@libs/logger/src/logger.service';
 
 @Injectable()
-export class EmailNotificationHandler implements IEventHandler<WelcomeEmailRequiredEvent> {
+export class EmailNotificationHandler
+  implements IEventHandler<WelcomeEmailRequiredEvent>
+{
   constructor(private readonly logger: LoggerService) {}
 
   async handle(event: WelcomeEmailRequiredEvent): Promise<void> {
     try {
-      const { email, firstName } = event.user;
-      this.logger.debug(`Preparing welcome email for user: ${email}`, { email });
+      const { email } = event.user;
+      this.logger.debug(`Preparing welcome email for user: ${email}`, {
+        email,
+      });
 
       // В реальном приложении здесь будет интеграция с email сервисом
       // Например:
@@ -21,12 +25,14 @@ export class EmailNotificationHandler implements IEventHandler<WelcomeEmailRequi
       //   data: { firstName }
       // });
 
-      this.logger.info(`Welcome email sent successfully to: ${email}`, { email });
+      this.logger.info(`Welcome email sent successfully to: ${email}`, {
+        email,
+      });
     } catch (error) {
       this.logger.error(
         `Failed to send welcome email to ${event.user.email}`,
         error,
-        { email: event.user.email }
+        { email: event.user.email },
       );
       // В реальном приложении здесь можно добавить повторную попытку отправки
       // или поместить событие в очередь для последующей обработки

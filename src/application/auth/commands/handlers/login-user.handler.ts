@@ -33,10 +33,14 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
       // Publish event
       this.eventBus.publish(new UserLoggedInEvent(user));
 
-      this.logger.debug('User logged in successfully', { userId: response.user.id });
+      this.logger.debug('User logged in successfully', {
+        userId: response.user.id,
+      });
       return response;
     } catch (error) {
-      this.logger.error('Failed to login user', error, { email: command.email });
+      this.logger.error('Failed to login user', error, {
+        email: command.email,
+      });
       throw error;
     }
   }

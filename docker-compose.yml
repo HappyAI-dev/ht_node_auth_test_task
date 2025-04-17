@@ -9,6 +9,7 @@ services:
       - "3030:3000"
     environment:
       - NODE_ENV=development
+      - PORT=3000
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_USERNAME=${DB_USERNAME}
@@ -17,7 +18,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
       - AUTH_SERVICE_HOST=${AUTH_SERVICE_HOST}
-      - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
+      - AUTH_SERVICE_PORT=3001
     depends_on:
       postgres:
         condition: service_healthy
