@@ -5,9 +5,7 @@ export class UserRegisteredEvent implements IEvent {
   readonly type = 'UserRegisteredEvent';
   readonly timestamp: Date;
 
-  constructor(
-    public readonly user: User,
-  ) {
+  constructor(public readonly user: User) {
     this.timestamp = new Date();
   }
 }

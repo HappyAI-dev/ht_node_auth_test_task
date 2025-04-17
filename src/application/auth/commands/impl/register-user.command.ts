@@ -6,5 +6,6 @@ export class RegisterUserCommand implements ICommand {
     public readonly password: string,
     public readonly firstName?: string,
     public readonly lastName?: string,
+    public readonly referralCode?: string,
   ) {}
 }

@@ -1,22 +1,22 @@
-import { 
-  BadRequestException, 
-  Body, 
-  Controller, 
-  Get, 
-  HttpCode, 
-  HttpStatus, 
-  Post, 
-  UnauthorizedException, 
-  UseGuards 
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { 
-  ApiBadRequestResponse, 
-  ApiBearerAuth, 
-  ApiOperation, 
-  ApiResponse, 
-  ApiTags, 
-  ApiUnauthorizedResponse 
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { LoginUserCommand } from '@application/auth/commands/impl/login-user.command';
@@ -25,7 +25,12 @@ import { CurrentUser } from '@application/auth/decorators/current-user.decorator
 import { GetUserProfileQuery } from '@application/auth/queries/impl/get-user-profile.query';
 import { User } from '@domain/models/user.model';
 import { JwtAuthGuard } from '@infrastructure/auth/jwt-auth.guard';
-import { AuthResponse, LoginDto, RegisterDto, UserDto } from '@libs/shared/dto/auth';
+import {
+  AuthResponse,
+  LoginDto,
+  RegisterDto,
+  UserDto,
+} from '@libs/shared/dto/auth';
 import { LoggerService } from '@libs/logger/src/logger.service';
 
 @ApiTags('auth')
@@ -40,19 +45,30 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'User successfully registered', type: AuthResponse })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'User successfully registered',
+    type: AuthResponse,
+  })
   @ApiBadRequestResponse({
     description: 'Invalid registration data or user already exists',
   })
   async register(@Body() dto: RegisterDto): Promise<AuthResponse> {
     try {
       this.logger.debug('Registering new user', { email: dto.email });
-      // Register user
+
+      // Регистрация пользователя с поддержкой реферального кода
       await this.commandBus.execute(
-        new RegisterUserCommand(dto.email, dto.password, dto.firstName, dto.lastName),
+        new RegisterUserCommand(
+          dto.email,
+          dto.password,
+          dto.firstName,
+          dto.lastName,
+          dto.referralCode,
+        ),
       );
-      
-      // Login user
+
+      // Вход пользователя
       return this.commandBus.execute(
         new LoginUserCommand(dto.email, dto.password),
       );
@@ -65,7 +81,11 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login user' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'User successfully logged in', type: AuthResponse })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User successfully logged in',
+    type: AuthResponse,
+  })
   @ApiUnauthorizedResponse({
     description: 'Invalid credentials',
   })
@@ -85,7 +105,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user profile' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'User profile retrieved successfully', type: UserDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User profile retrieved successfully',
+    type: UserDto,
+  })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })

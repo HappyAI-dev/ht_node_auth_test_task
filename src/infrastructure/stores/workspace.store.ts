@@ -25,7 +25,7 @@ export class WorkspaceStore {
       relations: ['workspace', 'workspace.members'],
     });
 
-    return memberships.map(m => m.workspace);
+    return memberships.map((m) => m.workspace);
   }
 
   async save(workspace: Workspace): Promise<Workspace> {

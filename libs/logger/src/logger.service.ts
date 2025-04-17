@@ -41,25 +41,36 @@ export class LoggerService implements ILogger {
       level: entry.level,
       message: entry.message,
       ...(entry.context || {}),
-      ...(entry.error ? {
-        error: {
-          message: entry.error.message,
-          stack: entry.error.stack,
-        },
-      } : {}),
+      ...(entry.error
+        ? {
+            error: {
+              message: entry.error.message,
+              stack: entry.error.stack,
+            },
+          }
+        : {}),
     };
   }
 
   debug(message: string, context?: LogContext): void {
-    this.logger.debug(message, this.formatMessage({ level: 'debug', message, context }));
+    this.logger.debug(
+      message,
+      this.formatMessage({ level: 'debug', message, context }),
+    );
   }
 
   info(message: string, context?: LogContext): void {
-    this.logger.info(message, this.formatMessage({ level: 'info', message, context }));
+    this.logger.info(
+      message,
+      this.formatMessage({ level: 'info', message, context }),
+    );
   }
 
   warn(message: string, context?: LogContext): void {
-    this.logger.warn(message, this.formatMessage({ level: 'warn', message, context }));
+    this.logger.warn(
+      message,
+      this.formatMessage({ level: 'warn', message, context }),
+    );
   }
 
   error(message: string, error?: Error, context?: LogContext): void {

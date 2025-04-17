@@ -1,4 +1,9 @@
-import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableForeignKey,
+} from 'typeorm';
 import { WorkspaceMemberRole } from '@domain//models/workspace.model';
 
 export class CreateWorkspaceTables1681317600001 implements MigrationInterface {
