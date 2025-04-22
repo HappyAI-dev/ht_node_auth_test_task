@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { User } from '@domain/models/user.model';
+
 
 @Injectable()
 export class UserStore {
@@ -23,7 +24,18 @@ export class UserStore {
     return count > 0;
   }
 
-  async save(user: User): Promise<User> {
-    return this.repository.save(user);
+  async existsByReferralCode(referral_code: string): Promise<boolean> {
+    const count = await this.repository.count({ where: { referral_code } });
+    return count > 0;
   }
+
+  async save(user: User, manager?: EntityManager): Promise<User> {
+    const repo = manager ? manager.getRepository(User) : this.repository;
+    return repo.save(user);
+  }
+
+  async findByReferralCode(referral_code: string): Promise<User | null> {
+    return this.repository.findOne({ where: { referral_code } });
+  }
+ 
 }

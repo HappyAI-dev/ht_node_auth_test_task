@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { User } from '@domain/models/user.model';
 import { Workspace, WorkspaceMember } from '@domain/models/workspace.model';
+import { Referral, ReferralHistory } from '@domain/models/referral.model';
 
 @Injectable()
 export class DatabaseConfig implements TypeOrmOptionsFactory {
@@ -16,7 +17,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       username: this.configService.get('DB_USERNAME'),
       password: this.configService.get('DB_PASSWORD'),
       database: this.configService.get('DB_DATABASE'),
-      entities: [User, Workspace, WorkspaceMember],
+      entities: [User, Workspace, WorkspaceMember, Referral, ReferralHistory],
       synchronize: this.configService.get('NODE_ENV') === 'development',
     };
   }

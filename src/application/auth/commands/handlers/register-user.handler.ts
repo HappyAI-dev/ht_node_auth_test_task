@@ -9,12 +9,14 @@ import { User } from '@domain/models/user.model';
 import { UserStore } from '@infrastructure/stores/user.store';
 import { AuthResponse } from '@libs/shared/dto/auth';
 import { LoggerService } from '@libs/logger/src/logger.service';
+import { ReferralService } from '@application/auth/services/referral.service';
 
 @CommandHandler(RegisterUserCommand)
 export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand> {
   constructor(
     private readonly userStore: UserStore,
     private readonly authService: AuthService,
+    private readonly referralService: ReferralService,
     private readonly eventBus: EventBus,
     private readonly logger: LoggerService,
   ) {}
@@ -23,11 +25,21 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
     this.logger.debug('Handling RegisterUserCommand', { email: command.email });
 
     try {
+      let inviterUser: User | null = null;
+
+      if (command.referral_code) {
+        inviterUser = await this.userStore.findByReferralCode(command.referral_code);
+        if (!inviterUser) {
+          throw new ConflictException('Invalid referral code');
+        }
+      }
+
       const { user: userDto, ...response } = await this.authService.register({
         email: command.email,
         password: command.password,
         firstName: command.firstName,
         lastName: command.lastName,
+        referredBy: inviterUser?.id,
       });
 
       // Get full user model for UserCreatedEvent
@@ -37,8 +49,17 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
       }
 
       // Update last login time
+
       user.updateLastLogin();
       await this.userStore.save(user);
+
+
+      // Apply referral logic if inviter exists
+        // if (inviterUser) {
+        //   await this.referralService.applyReferralLogic(inviterUser, user);
+        // }
+
+
 
       // Publish events
       this.eventBus.publish(new UserCreatedEvent(user));

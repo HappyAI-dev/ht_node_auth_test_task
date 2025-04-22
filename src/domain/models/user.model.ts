@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { WorkspaceMember } from '@domain/models/workspace.model';
 import { BaseModel, BaseProps } from '@domain/models/base.model';
+import { Referral, ReferralHistory } from './referral.model';
 
 export interface UserProps extends BaseProps {
   id?: string;
@@ -12,6 +13,8 @@ export interface UserProps extends BaseProps {
   lastName?: string;
   isEmailVerified: boolean;
   lastLoginAt?: Date;
+  referral_code?: string;
+ 
 }
 
 @Entity('users')
@@ -26,7 +29,8 @@ export class User extends BaseModel<UserProps> {
       lastLoginAt: props.lastLoginAt,
       id: props.id,
       createdAt: props.createdAt,
-      updatedAt: props.updatedAt
+      updatedAt: props.updatedAt,
+      referral_code: props.referral_code,
     });
   }
 
@@ -82,8 +86,29 @@ export class User extends BaseModel<UserProps> {
     this.props.lastLoginAt = value;
   }
 
+  @Column({ type: 'varchar', unique: true, nullable: false })
+  get referral_code(): string {
+    return this.props.referral_code;
+  }
+  set referral_code(value: string) {
+    this.props.referral_code = value;
+  }
+
+
+
+ 
+
   @OneToMany(() => WorkspaceMember, member => member.user)
   workspaces: WorkspaceMember[];
+
+  @OneToOne(() => Referral, referral => referral.user)
+  referral: Referral;
+
+  @OneToMany(() => ReferralHistory, referral => referral.inviter)
+  sentReferrals!: ReferralHistory[];
+
+  @OneToMany(() => ReferralHistory, referral => referral.invitee)
+  receivedReferrals!: ReferralHistory[];
 
   async setPassword(password: string): Promise<void> {
     const salt = await bcrypt.genSalt();
@@ -98,17 +123,22 @@ export class User extends BaseModel<UserProps> {
     this.lastLoginAt = new Date();
   }
 
+  
+
   verifyEmail(): void {
     this.isEmailVerified = true;
   }
 
-  static async create(email: string, password: string, firstName?: string, lastName?: string): Promise<User> {
+
+  static async create(email: string, password: string, firstName?: string, lastName?: string, referral_code?: string, referred_by?: string): Promise<User> {
     const user = new User({
       email,
       password: '',
       firstName,
       lastName,
       isEmailVerified: false,
+      referral_code,
+   
     });
 
     await user.setPassword(password);
@@ -125,6 +155,8 @@ export class User extends BaseModel<UserProps> {
       lastLoginAt: this.lastLoginAt,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      referral_code: this.referral_code,
+ 
     };
   }
 }
