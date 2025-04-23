@@ -6,11 +6,16 @@ import { ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { User } from '@domain/models/user.model';
 import { Workspace, WorkspaceMember } from '@domain/models/workspace.model';
+import { Referral, ReferralHistory } from '@domain/models/referral.model';
 import { JwtStrategy } from '@infrastructure/auth/jwt.strategy';
 import { UserStore } from '@infrastructure/stores/user.store';
 import { WorkspaceStore } from '@infrastructure/stores/workspace.store';
 import { LoggerModule } from '@libs/logger/src/logger.module';
 import { AuthService } from '@application/auth/services/auth.service';
+import { ReferralHistoryStore } from '@infrastructure/stores/referralHistory.store';
+import { ReferralStore } from '@infrastructure/stores/referral.store';
+import { ReferralService } from '@application/auth/services/referral.service';
+
 
 // Command Handlers
 import { RegisterUserHandler } from '@application/auth/commands/handlers/register-user.handler';
@@ -34,7 +39,7 @@ const EventHandlers = [
 @Module({
   imports: [
     CqrsModule,
-    TypeOrmModule.forFeature([User, Workspace, WorkspaceMember]),
+    TypeOrmModule.forFeature([User, Workspace, WorkspaceMember, Referral, ReferralHistory]),
     JwtModule.registerAsync({
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'),
@@ -52,9 +57,13 @@ const EventHandlers = [
     JwtStrategy,
     UserStore,
     WorkspaceStore,
+    ReferralService,
+    ReferralStore,
+    ReferralHistoryStore,
     ...CommandHandlers,
     ...QueryHandlers,
     ...EventHandlers,
   ],
+  exports: [AuthService, JwtStrategy, UserStore, WorkspaceStore, ReferralService, ReferralStore, ReferralHistoryStore],
 })
 export class AuthModule {}

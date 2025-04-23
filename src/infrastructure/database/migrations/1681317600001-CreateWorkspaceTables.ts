@@ -25,7 +25,7 @@ export class CreateWorkspaceTables1681317600001 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'owner_id',
+            name: 'ownerId',
             type: 'uuid',
           },
           {
@@ -56,11 +56,11 @@ export class CreateWorkspaceTables1681317600001 implements MigrationInterface {
             default: 'uuid_generate_v4()',
           },
           {
-            name: 'workspace_id',
+            name: 'workspaceId',
             type: 'uuid',
           },
           {
-            name: 'user_id',
+            name: 'userId',
             type: 'uuid',
           },
           {
@@ -88,7 +88,7 @@ export class CreateWorkspaceTables1681317600001 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'workspaces',
       new TableForeignKey({
-        columnNames: ['owner_id'],
+        columnNames: ['ownerId'],
         referencedColumnNames: ['id'],
         referencedTableName: 'users',
         onDelete: 'CASCADE',
@@ -98,7 +98,7 @@ export class CreateWorkspaceTables1681317600001 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'workspace_members',
       new TableForeignKey({
-        columnNames: ['workspace_id'],
+        columnNames: ['workspaceId'],
         referencedColumnNames: ['id'],
         referencedTableName: 'workspaces',
         onDelete: 'CASCADE',
@@ -108,7 +108,7 @@ export class CreateWorkspaceTables1681317600001 implements MigrationInterface {
     await queryRunner.createForeignKey(
       'workspace_members',
       new TableForeignKey({
-        columnNames: ['user_id'],
+        columnNames: ['userId'],
         referencedColumnNames: ['id'],
         referencedTableName: 'users',
         onDelete: 'CASCADE',

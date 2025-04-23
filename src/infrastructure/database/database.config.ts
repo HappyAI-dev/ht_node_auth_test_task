@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { User } from '@domain/models/user.model';
 import { Workspace, WorkspaceMember } from '@domain/models/workspace.model';
+import { Referral, ReferralHistory } from '@domain/models/referral.model';
 
 @Injectable()
 export class DatabaseConfig implements TypeOrmOptionsFactory {
@@ -11,12 +12,12 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
   createTypeOrmOptions(): TypeOrmModuleOptions {
     return {
       type: 'postgres',
-      host: this.configService.get('DB_HOST'),
-      port: this.configService.get('DB_PORT'),
+      host: this.configService.get('DB_HOST_FOR_MIGRATION'),
+      port: this.configService.get('DB_PORT_FOR_MIGRATION'),
       username: this.configService.get('DB_USERNAME'),
       password: this.configService.get('DB_PASSWORD'),
       database: this.configService.get('DB_DATABASE'),
-      entities: [User, Workspace, WorkspaceMember],
+      entities: [User, Workspace, WorkspaceMember, Referral, ReferralHistory],
       synchronize: this.configService.get('NODE_ENV') === 'development',
     };
   }

@@ -3,11 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@domain/models/user.model';
 import { LoginDto, RegisterDto, AuthResponse } from '@libs/shared/dto/auth';
 import { UserStore } from '@infrastructure/stores/user.store';
+import { ReferralStore } from '@infrastructure/stores/referral.store';
+import { DataSource, EntityManager } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly dataSource: DataSource,
     private readonly userStore: UserStore,
+    private readonly referralStore: ReferralStore,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -29,8 +33,21 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        referral_code: user.referral_code,
       },
     };
+  }
+
+  private async generateReferralCode(): Promise<string> {
+    let code: string;
+    let exists = true;
+  
+    do {
+      code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      exists = await this.userStore.existsByReferralCode(code);
+    } while (exists);
+  
+    return code;
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponse> {
@@ -43,15 +60,26 @@ export class AuthService {
     if (exists) {
       throw new ConflictException('User with this email already exists');
     }
+    // Generate referral code for user
+    const referral_code = await this.generateReferralCode();
 
-    const user = await User.create(
-      registerDto.email,
-      registerDto.password,
-      registerDto.firstName,
-      registerDto.lastName
-    );
 
-    const savedUser = await this.userStore.save(user);
-    return this.generateAuthResponse(savedUser);
+    // create transaction
+    return this.dataSource.transaction(async (manager: EntityManager) => {
+
+      const user = await User.create(
+        registerDto.email,
+        registerDto.password,
+        registerDto.firstName,
+        registerDto.lastName,
+        referral_code,
+      );
+      const savedUser = await this.userStore.save(user, manager);
+
+      await this.referralStore.create(user.id, registerDto.referredBy, manager);
+
+
+      return this.generateAuthResponse(savedUser);
+    });
   }
 }
