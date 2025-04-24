@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3030:3000"
+      - "3001:3001"
     environment:
       - NODE_ENV=development
       - DB_HOST=${DB_HOST}
@@ -23,6 +23,7 @@ services:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs:rw
+      - ./src:/app/src:rw 
     networks:
       - hypetrain-network
     healthcheck:

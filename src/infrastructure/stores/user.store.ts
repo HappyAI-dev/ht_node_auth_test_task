@@ -18,6 +18,11 @@ export class UserStore {
     return this.repository.findOne({ where: { email } });
   }
 
+  async findByRefCode(code:string): Promise<User | null>{
+    return this.repository.findOne({ where: { refCode:code } });
+    
+  } 
+
   async exists(email: string): Promise<boolean> {
     const count = await this.repository.count({ where: { email } });
     return count > 0;
@@ -26,4 +31,6 @@ export class UserStore {
   async save(user: User): Promise<User> {
     return this.repository.save(user);
   }
+
+  
 }

@@ -1,11 +1,8 @@
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { ConflictException } from '@nestjs/common';
-
 import { RegisterUserCommand } from '@application/auth/commands/impl/register-user.command';
 import { UserCreatedEvent } from '@application/auth/events/impl/user-created.event';
 import { WelcomeEmailRequiredEvent } from '@application/auth/events/impl/welcome-email-required.event';
 import { AuthService } from '@application/auth/services/auth.service';
-import { User } from '@domain/models/user.model';
 import { UserStore } from '@infrastructure/stores/user.store';
 import { AuthResponse } from '@libs/shared/dto/auth';
 import { LoggerService } from '@libs/logger/src/logger.service';
@@ -28,6 +25,8 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
         password: command.password,
         firstName: command.firstName,
         lastName: command.lastName,
+        referralCode: command.referralCode
+/*         referralCode: command.referral_code, //string type */
       });
 
       // Get full user model for UserCreatedEvent
@@ -39,10 +38,13 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
       // Update last login time
       user.updateLastLogin();
       await this.userStore.save(user);
+/* 
+      user.updatereferralBox() */ // add logic
 
       // Publish events
       this.eventBus.publish(new UserCreatedEvent(user));
       this.eventBus.publish(new WelcomeEmailRequiredEvent(user));
+      
 
       this.logger.debug('User registration completed', { userId: user.id });
       return { ...response, user: userDto };

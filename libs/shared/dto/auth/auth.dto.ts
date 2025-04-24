@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNumber, IsNotEmpty, IsString, MinLength, IsOptional, IsDate, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class RegisterDto {
   @ApiProperty({
@@ -35,6 +36,17 @@ export class RegisterDto {
   })
   @IsString()
   lastName?: string;
+
+  @ApiProperty({
+    description: 'Реферальный код',
+    example: 'ABC123',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  referralCode?: string;
+
+
 }
 
 export class LoginDto {
@@ -54,6 +66,35 @@ export class LoginDto {
   @IsNotEmpty()
   password: string;
 }
+
+export class ReferralProgramDTO {
+
+  @ApiProperty({ example: 1, description: 'Уровень реферала' })
+  @IsNumber()
+  level: number;
+
+  @ApiProperty({ example: 50, description: 'Кредит за приглашение' })
+  @IsNumber()
+  credit: number;
+
+  @ApiProperty({ example: 50, description: 'Кредит за приглашение' })
+  @IsOptional()
+  @IsNumber()
+  refcount?: number;
+
+  @ApiProperty({ example: 5, description: 'Серия использования', required: false })
+  @IsOptional()
+  @IsNumber()
+  streak?: number;
+
+  @ApiProperty({ example: '2025-04-20T10:00:00Z', description: 'Timestamp', required: false })
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  strTimestamp?: Date;
+
+}
+
 
 export class UserDto {
   @ApiProperty({
@@ -81,6 +122,23 @@ export class UserDto {
     required: false,
   })
   lastName?: string;
+
+  @ApiProperty({
+    description: 'Реферальный код',
+    example: 'ABC123',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  refCode?: string;
+
+
+
+  @ApiProperty({ type: () => ReferralProgramDTO , required: false })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ReferralProgramDTO )
+  referralData?: ReferralProgramDTO;//box maybe?
 }
 
 export class AuthResponse {
