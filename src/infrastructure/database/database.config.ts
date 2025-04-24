@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
-import { User } from '@domain/models/user.model';
-import { Workspace, WorkspaceMember } from '@domain/models/workspace.model';
+import { User } from '../../domain/models/user.model';
+import { Workspace, WorkspaceMember } from '../..//domain/models/workspace.model';
 
 @Injectable()
 export class DatabaseConfig implements TypeOrmOptionsFactory {

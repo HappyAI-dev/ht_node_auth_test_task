@@ -24,6 +24,7 @@
       "@application/*": ["src/application/*"],
       "@libs/*": ["libs/*"],
       "@web-api/*": ["src/web-api/*"]
+      
     }
   }
 }

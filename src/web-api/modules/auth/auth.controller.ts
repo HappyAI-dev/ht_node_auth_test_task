@@ -49,7 +49,7 @@ export class AuthController {
       this.logger.debug('Registering new user', { email: dto.email });
       // Register user
       await this.commandBus.execute(
-        new RegisterUserCommand(dto.email, dto.password, dto.firstName, dto.lastName),
+        new RegisterUserCommand(dto.email, dto.password, dto.firstName, dto.lastName, dto.referralCode),
       );
       
       // Login user
